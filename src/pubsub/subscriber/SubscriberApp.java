@@ -1,20 +1,29 @@
-package pubsub.publisher;
+package pubsub.subscriber;
 
 import pubsub.model.Event;
-import pubsub.model.Publisher;
+import pubsub.model.Subscriber;
 import pubsub.service.IntermediaryService;
 
+import java.io.Serializable;
 import java.net.MalformedURLException;
 import java.rmi.Naming;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
+import java.util.List;
 import java.util.Random;
 import java.util.Scanner;
 
 /**
  * Created by MarcoADP on 23/05/2017.
  */
-public class PublisherApp {
+public class SubscriberApp implements Serializable{
+
+    public void showEvents(List<Event> events) {
+        for (Event e : events) {
+            System.out.println("Evento : " + e.getDescription() + " -- Created by : " + e.getPublisher().getId());
+        }
+    }
+
 
     public static void main(String[] args) {
         try {
@@ -22,23 +31,26 @@ public class PublisherApp {
             System.out.println("conectado ao server");
             Integer saida = -1;
             String evento, mensagem;
-            Event novo;
             Random ran = new Random();
-            Publisher pub = new Publisher(ran.nextInt(), "pub");
+            Subscriber sub = new Subscriber(ran.nextInt(), "sub");
             Scanner sc = new Scanner(System.in);
             while(saida != 0){
                 System.out.println("0 - Sair");
-                System.out.println("1 - Publicar Evento");
-                System.out.println("2 - Enviar Mensagem");
+                System.out.println("1 - Mostrar Eventos");
+                System.out.println("2 - Se Inscrever");
 
                 saida = sc.nextInt();
 
                 if(saida == 1){
-                    System.out.print("Nome do Evento : ");
-                    evento = sc.next();
-                    novo = new Event(pub, evento);
-                    inter.publish(novo);
+                    System.out.println("Eventos : ");
+                    //evento = sc.next();
+                    //novo = new Event(sub, evento);
+                    SubscriberApp s = new SubscriberApp();
+                    s.showEvents(inter.getEvents());
 
+                } else if (saida == 2){
+                    System.out.print("Escolha o evento : ");
+                    evento = sc.next();
                 }
 
             }
@@ -47,5 +59,4 @@ public class PublisherApp {
             System.out.println(e);
         }
     }
-
 }
