@@ -37,7 +37,7 @@ public class Event implements Serializable {
     @Override
     public String toString() {
         return "Event{" +
-                "publisher=" + publisher +
+                "publisherONE=" + publisher +
                 ", description='" + description + '\'' +
                 '}';
     }

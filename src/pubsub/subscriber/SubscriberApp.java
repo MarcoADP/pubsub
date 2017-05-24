@@ -28,7 +28,7 @@ public class SubscriberApp implements Serializable{
     public static void main(String[] args) {
         try {
             IntermediaryService inter = (IntermediaryService) Naming.lookup( "192.168.56.1/IntermediaryService");
-            System.out.println("conectado ao server");
+            System.out.println("conectado ao intermediaryONE");
             Integer saida = -1;
             String evento, mensagem;
             Random ran = new Random();
