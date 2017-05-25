@@ -8,9 +8,14 @@ public class Subscriber1 {
     public Subscriber1() {
         try {
             Client a1 = new Client("A1", "I2");
-            Naming.rebind("//localhost/" + a1.getId(), a1);
+            Naming.rebind(a1.getUrl(), a1);
 
-            a1.receiveEvent("x");
+            a1.showStatus();
+
+            a1.subcscriberMenu();
+
+            //a1.receiveEvent("x");
+            //a1.receiveEvent("a");
         } catch (Exception e) {
             System.out.println("Erro: " + e);
         }

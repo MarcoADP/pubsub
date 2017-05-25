@@ -1,11 +1,18 @@
 package pubsub;
 
+import java.net.UnknownHostException;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
 
 public interface IIntermediary extends Remote {
 
-    void publish(String nodeId, String event) throws RemoteException;
+    String id = "0";
 
-    void subscribe(String nodeId, String subscription) throws RemoteException;
+    String getId() throws RemoteException;
+
+    void publish(String nodeId, String event, String message, String creator) throws RemoteException, UnknownHostException;
+
+    void subscribe(String nodeId, String subscription) throws RemoteException, UnknownHostException;
+
+    void showStatus() throws RemoteException;
 }

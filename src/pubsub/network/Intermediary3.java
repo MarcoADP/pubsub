@@ -12,9 +12,9 @@ public class Intermediary3 {
             Intermediary i3 = new Intermediary("I3");
             i3.addNeighbor("I1");
 
-            Naming.rebind("//localhost/" + i3.getId(), i3);
+            Naming.rebind(i3.getUrl(), i3);
 
-            System.out.println("Intermediário " + i3.getId() + " executando.");
+            i3.showStatus();
         } catch (Exception e) {
             System.out.println("Erro: " + e);
         }

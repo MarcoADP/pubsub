@@ -7,7 +7,8 @@ public class Publisher1 {
         try {
             Client p1 = new Client("P1", "I1");
 
-            p1.sendEvent("x");
+            p1.publisherMenu();
+
         } catch (Exception e) {
             e.printStackTrace();
         }

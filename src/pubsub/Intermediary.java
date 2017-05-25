@@ -1,72 +1,117 @@
 package pubsub;
 
+import javafx.util.Pair;
+
+import java.net.UnknownHostException;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class Intermediary extends UnicastRemoteObject implements IIntermediary {
 
     private String id;
 
-    private Map<String, String> subscriptions;
-    private Map<String, String> routing;
+    private List<Pair<String, String>> subscriptions;
+    private List<Pair<String, String>> routing;
     private Set<String> neighbors;
+    private String url;
 
-    public Intermediary(String id) throws RemoteException {
+    public void showSubsctriptions(){
+        System.out.println("SUBS : ");
+        for(Pair pair : subscriptions){
+            System.out.println(pair.getKey() + " -- " + pair.getValue());
+        }
+        System.out.println(" -- fim --");
+    }
+
+    public void showRouting(){
+        System.out.println("ROUTES : ");
+        for(Pair pair : routing){
+            System.out.println(pair.getKey() + " -- " + pair.getValue());
+        }
+        System.out.println(" -- fim --");
+    }
+
+    public Intermediary(String id) throws RemoteException, UnknownHostException {
         this.id = id;
-        subscriptions = new HashMap<>();
-        routing = new HashMap<>();
+        subscriptions = new ArrayList<>();
+        routing = new ArrayList<>();
         neighbors = new HashSet<>();
+        url = Util.createUrl(id);
     }
 
     @Override
-    public void publish(String nodeId, String event) throws RemoteException {
+    public void publish(String nodeId, String event, String message, String creator) throws RemoteException, UnknownHostException {
         System.out.println(String.format("%s: evento %s recebido de %s", id, event, nodeId));
-        matchAndNotify(event);
-        fowardPublish(event);
+        matchAndNotify(nodeId, event, message, creator);
+        fowardPublish(nodeId, event, message, creator);
     }
 
-    private void matchAndNotify(String event) {
-        for (String subscriberId : subscriptions.keySet()) {
+    private void matchAndNotify(String nodeId, String event, String message, String creator) throws UnknownHostException {
+        for(Pair pair : subscriptions){
+            if(pair.getValue().toString().equals(event)){
+                IClient subscriber = Util.getClientById(pair.getKey().toString());
+                if(subscriber != null){
+                    try {
+                        subscriber.notify(event, message, creator);
+                    } catch (RemoteException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        }
+        /*for (String subscriberId : subscriptions.keySet()) {
             if (subscriptions.get(subscriberId).equals(event)) {
                 IClient subscriber = Util.getClientById(subscriberId);
                 if (subscriber != null) {
                     try {
-                        subscriber.notify(event);
+                        subscriber.notify(event, message, creator);
                     } catch (RemoteException e) {
                         e.printStackTrace();
                     }
                 }
             }
-        }
+        }*/
     }
 
-    private void fowardPublish(String event) {
-        for (String intermediaryId : routing.keySet()) {
+    private void fowardPublish(String nodeId, String event, String message, String creator) throws UnknownHostException, RemoteException {
+        for(Pair pair : routing){
+           if(pair.getValue().toString().equals(event)){
+               IIntermediary intermediary = Util.getIntermediaryById(pair.getKey().toString());
+               System.out.println("ids > " + intermediary.getId() + " -- " + nodeId);
+               if (intermediary != null && !intermediary.getId().equals(nodeId)) {
+                   try {
+                       intermediary.publish(this.id, event, message, creator);
+                   } catch (RemoteException e) {
+                       e.printStackTrace();
+                   }
+               }
+           }
+        }
+        /*for (String intermediaryId : routing.keySet()) {
             if (routing.get(intermediaryId).equals(event)) {
                 IIntermediary intermediary = Util.getIntermediaryById(intermediaryId);
                 if (intermediary != null) {
                     try {
-                        intermediary.publish(this.id, event);
+                        intermediary.publish(this.id, event, message, creator);
                     } catch (RemoteException e) {
                         e.printStackTrace();
                     }
                 }
             }
-        }
+        }*/
     }
 
     @Override
-    public void subscribe(String nodeId, String subscription) throws RemoteException {
+    public void subscribe(String nodeId, String subscription) throws RemoteException, UnknownHostException {
         System.out.println(String.format("%s: recebeu subscrição do evento %s de %s.", id, subscription, nodeId));
-
+        Pair pair = new Pair(nodeId, subscription);
         if (isClient(nodeId)) {
-            subscriptions.put(nodeId, subscription);
+           subscriptions.add(pair);
+            //subscriptions.put(nodeId, subscription);
         } else {
-            routing.put(nodeId, subscription);
+            routing.add(pair);
+            //routing.put(nodeId, subscription);
         }
 
         for (String neighborId : neighbors) {
@@ -77,6 +122,9 @@ public class Intermediary extends UnicastRemoteObject implements IIntermediary {
                 }
             }
         }
+
+        this.showSubsctriptions();
+        this.showRouting();
     }
 
     private boolean isClient(String id) {
@@ -98,11 +146,21 @@ public class Intermediary extends UnicastRemoteObject implements IIntermediary {
     }
 
     @Override
+    public void showStatus() throws RemoteException{
+        System.out.println("Intermediário " + this.getId() + " executando no endereco : " + this.getUrl());
+    }
+
+    @Override
     public int hashCode() {
         return id != null ? id.hashCode() : 0;
     }
 
-    public String getId() {
+    @Override
+    public String getId() throws RemoteException{
         return id;
+    }
+
+    public String getUrl() {
+        return url;
     }
 }
